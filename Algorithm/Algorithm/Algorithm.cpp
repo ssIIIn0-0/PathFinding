@@ -1,293 +1,70 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <stack>
 using namespace std;
 
-template<typename T>
-class Vector
+// Stack (LIFO Last-In-First-Out 후입선출)
+
+// 메모리에 가장 나중에 들어간 데이터가 먼저 출력되는 형식
+// 게임으로 치면 되돌리기 (ctrl+z)
+
+template<typename T, typename Container = vector<T>>
+// 컨테이너의 기본 타입은 벡터이지만, main에서 변수선언할 때 바꿔줄 수 있다.
+class Stack
 {
 public:
-    Vector()    // 생성자
+    void push(const T& value)
     {
-
-    }
-    ~Vector()   // 소멸자
-    {
-        if (_data)
-            delete[] _data;
+        _container.push_back(value);
     }
 
-    void push_back(const T& value)
+    T pop()
     {
-        if (_size == _capacity)
-        {
-            int newCapacity = static_cast<int>(_capacity * 1.5);
-            if (newCapacity == _capacity)
-                newCapacity++;
-
-            reserve(newCapacity);
-        }
-
-        // 데이터 저장
-        _data[size] = value;
-
-        // 데이터 개수 증가
-        _size++;
-    }
-    void reserve(int capacity)
-    {
-        if (_capacity >= capacity)
-            return;
-
-        _capacity = capacity;
-
-        T* newData = new T[_capacity];
-
-        // 데이터 복사
-        for (int i = 0; i < _size; i++)
-            newData[i] = _data[i];
-
-        if (_data)
-            delete[] _data;
-
-        // 교체
-        _data = newData;
-    }
-
-    T& operator[](const int pos) { return _data[pos]; }
-
-    int size() { return _size; }
-    int capacity() { return _capacity; }
-
-    void clear()
-    {
-        if (_data)
-        {
-            delete[] _data;
-            _data = new T[_capacity];
-        }
-        _size = 0;
-    }
-private:
-    T*      _data = nullptr; // 동적배열의 시작위치
-    int     _size = 0;      // 실질적으로 사용하는 메모리 크기
-    int     _capacity = 0; // 할당받은 총 메모리 크기
-
-};
-
-template<typename T>
-class Node
-{
-public:
-    Node() : _prev(nullptr), _next(nullptr), _data(T())
-    {
-
-    }
-
-    Node(const T& value) : _prev(nullptr), _next(nullptr), _data(value)
-    {
-
-    }
-
-private:
-    Node* _prev;
-    Node* _next;
-    T     _data;
-};
-
-template<typename T>
-class Iterator
-{
-public:
-    Iterator() : _node(nullptr)
-    {
-
-    }
-
-    Iterator(Node<T>* node) : _node(node)
-    {
-
-    }
-
-    // ++it
-    Iterator& operator++()
-    {
-        _node = _node->_next;
-        return *this;
-    }
-    // it++
-    Iterator& operator++(int)
-    {
-        Iterator<T> temp = *this;
-        _node = _node->_next;
-        return temp;
-    }
-    // --it
-    Iterator& --operator()
-    {
-        _node = _node->_prev;
-        return *this;
-    }
-    // it--
-    Iterator& operator--(int)
-    {
-        Iterator<T> temp = *this;
-        _node = _node->_prev;
-        return temp;
-    }
-
-    // *it
-    T& operator*()
-    {
-        return _node->_data;
-    }
-
-    bool operator==(const Iterator& other)
-    {
-        return _node == other._node;
-    }
-
-    bool operator!=(const Iterator& other)
-    {
-        return _node != other._node;
-    }
-
-
-public:
-    Node<T>* _node;
-};
-
-template<typename T>
-class List
-{
-public:
-    List() : _size(0)
-    {
-        _head = new Node<T>();
-        _tail = new Node<T>();
-
-        _head->_next = _tail;
-        _tail->_prev = _head;
-    }
-
-    ~List()
-    {
-        while (_size > 0)
-            pop_beck();
-
-        delete _head;
-        delete _tail;
-    }
-
-    void push_back(const T& value) // tail바로 앞에 데이터 추가
-    {
-        AddNode(_tail, value);
-    }
-
-    void pop_back()
-    {
-        RemoveNode(_tail->_prev);
-    }
-
-private:
-    Node<T>* AddNode(Node<T>* before, const T& value)
-    {
-        Node<T>* newNode = new Node<T>(value);
-        Node<T>* prevNode = before->_prev;
-
-        prevNode->_next = newNode;
-        newNode->_prev = prevNode;
-
-        newNode->_next = before;
-        before->_prev = newNode;
-
-        _size++;
-
-        return newNode;
-    }
-
-    Node<T>* RemoveNode(Node<T>* node)
-    {
-        Node<T>* prevNode = node->_prev;
-        Node<T>* nextNode = node->_next;
-
-        prevNode->_next = nextNode;
-        nextNode->_prev = prevNode;
-
-        delete node;
-
+        T ret = _data[_size - 1];
         _size--;
-
-        return nextNode;
+        return ret; // T(const T&)
     }
 
-    int size() { return _size; }
-
-public:
-    using iterator = Iterator<T>;
-
-    iterator begin() { return iterator(_head->_next); }
-    iterator end() { return iteraotor(_tail); }
-
-    iterator insert(iterator it, const T& value)
+    void pop()
     {
-        Node<T>* node = AddNode(it._node, value);
-        return iterator(node);
+        _container.pop_back();
     }
-    iterator erase(iterator it)
+
+    T& top()
     {
-        Node<T>* node = RemoveNode(it._node);
-        return iterator(node);
+        return _container.back();
     }
 
-
+    bool empty() { return _container.empty(); }
+    bool size() { return _container.size(); }
 private:
-    Node<T>* _head;
-    Node<T>* _tail;
-    int      _size;
+    // vector<T> _container;
+    // list<T> _container;
+    Container _container;
 };
 
 
 int main()
 {
-    /*
-    vector<int>v;
+    Stack<int, list<int>> s;
 
-    v.resize(10);   // 실제 데이터 개수(_size)를 조정
-    v.reserve(100); // capacity를 조절, 처음부터 100정도로 지정을 해두면, size가 100이 될때까지는 capacity가 안정적이라 좋음
-    for (int i = 0; i < 100; i++)
+    // 삽입
+    s.push(1);
+    s.push(2);
+    s.push(3);
+
+    while (s.empty() == false)
     {
-        v.push_back(i);
-        cout << v[i] << " " << v.size() << " " << v.capacity() << endl;
+        // 최상위 데이터 출력
+        int data = s.top();
+
+        // 최상위 데이터 삭제
+        s.pop();
+
+        cout << data << endl;
     }
 
-    v.clear();
-    cout << v.size() << " " << v.capacity() << endl;
-    */
+    int size = s.size();
 
-    List<int> li;
-
-    List<int>::iterator eraselt;
-
-    for (int i = 0; i < 10; i++)
-    {
-        if (i == 5)
-        {
-            eraselt = li.insert(li.end(), i);
-        }
-        else
-        {
-            li.push_back(i);
-        }
-    }
-
-    li.pop_back();
-
-    li.erase(eraselt);
-
-    for (List<int>::iterator it = li.begin(); it != li.end(); it++)
-    {
-        cout << (*it) << endl;
-    }
 }
-
