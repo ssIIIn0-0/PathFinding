@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Player.h"
 #include "Board.h"
+#include <stack>
 
 void Player::Init(Board* board)
 {
@@ -51,6 +52,37 @@ void Player::Init(Board* board)
 			_dir = (_dir + 1) % DIR_COUNT;
 		}
 	}
+
+	// 오른손법칙 stack사용
+	stack<Pos> s;
+
+	for (int i = 0; i < _path.size() - 1; i++)
+	{
+		if (s.empty() == false && s.top() == _path[i + 1])
+			// 지나왔던 길이라면, 삭제
+			s.pop();
+		else
+			s.push(_path[i]);
+	}
+
+	// 목적지 도착
+	if (_path.empty() == false) // 데이터가 있다면
+		s.push(_path.back()); // 마지막 좌표 = 목적지
+
+	// stack특성상 뒤집혀서 나오기 때문에 
+
+	// 1. 먼저 임시 path에 데이터를 저장하고,
+	vector<Pos> path;
+	while (s.empty() == false)
+	{
+		path.push_back(s.top());
+		s.pop();
+	}
+
+	// 2. path는 현재 목적지~출발지 역순이므로 바꿔준다.
+	std::reverse(path.begin(), path.end());
+
+	_path = path;
 }
 
 void Player::Update(uint64 deltaTick)
