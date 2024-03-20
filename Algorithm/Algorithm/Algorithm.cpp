@@ -5,173 +5,118 @@
 #include <queue>
 using namespace std;
 
-// Stack (LIFO Last-In-First-Out 후입선출)
-// 메모리에 가장 나중에 들어간 데이터가 먼저 출력되는 형식
-// 게임으로 치면 되돌리기 (ctrl+z)
-
-template<typename T, typename Container = vector<T>>
-// 컨테이너의 기본 타입은 벡터이지만, main에서 변수선언할 때 바꿔줄 수 있다.
-class Stack
+// 정점을 기준으로 간선관계 구현
+void CreateGraph_1()
 {
-public:
-    void push(const T& value)
-    {
-        _container.push_back(value);
-    }
+	struct Vertex
+	{
+		vector<Vertex*> edges;
+		// int data;
+	};
 
-    /*
-    // 이 방법은 사용하지 않음
-    T pop()
-    {
-        T ret = _data[_size - 1];
-        _size--;
-        return ret; // T(const T&)
-    }*/
+	vector<Vertex> v;
+	v.resize(6);
 
-    void pop()
-    {
-        _container.pop_back();
-    }
+	v[0].edges.push_back(&v[1]);
+	v[0].edges.push_back(&v[3]);
+	v[1].edges.push_back(&v[0]);
+	v[1].edges.push_back(&v[2]);
+	v[1].edges.push_back(&v[3]);
+	v[3].edges.push_back(&v[4]);
+	v[5].edges.push_back(&v[4]);
 
-    T& top()
-    {
-        return _container.back();
-    }
+	// Q) 0번 -> 3번 연결?
+	bool connected = false;
+	for (Vertex* edge : v[0].edges)
+	{
+		if (edge == &v[3])
+		{
+			connected = true;
+			break;
+		}
+	}
+}
 
-    bool empty() { return _container.empty(); }
-    int size() { return _container.size(); }
-private:
-    // vector<T> _container;
-    // list<T> _container;
-    Container _container;
-};
-
-// Queue (FIFO First-In-First-Out 선입선출)
-// 게임 대기열
-template<typename T>
-class ListQueue
+// 2차원 배열처럼 벡터에 벡터를 넣어서 정점에 포함된 간선 한번에 구현
+// 연결이 적은 경우에 유리
+void CreateGraph_2()
 {
-public:
-    void push(const T& value)
-    {
-        _container.push_back(value);
-    }
+	struct Vertex
+	{
+		// int data;
+	};
 
-    void pop()
-    {
-        // _container.pop_front();  이런건 없음
-        // _container.erase(_container.begin());
-        _container.pop_front();
-    }
+	vector<Vertex> v;
+	v.resize(6);
 
-    T& front()
-    {
-        return _container.front();
-    }
+	// 연결된 목록을 따로 관리
+	// adjacent[n] : n번째 정점과 연결된 정점 목록
+	vector<vector<int>> adjacent(6);
+	adjacent[0] = { 1, 3 };
+	adjacent[1] = { 0, 2, 3 };
+	adjacent[3] = { 4 };
+	adjacent[5] = { 4 };
 
-    bool empty() { return _container.empty(); }
-    int size() { return _container.size(); }
+	// Q) 0번 -> 3번 연결?
+	bool connected = false;
+	for (int vertex : adjacent[0])
+	{
+		if (vertex == 3)
+		{
+			connected = true;
+			break;
+		}
+	}
 
-private:
-    // vector<T> _container;
-    list<T> _container;
-};
+	// STL
+	vector<int>& adj = adjacent[0];
+	bool connected2 = (std::find(adj.begin(), adj.end(), 3) != adj.end());
+}
 
 
-template<typename T>
-class ArrayQueue
+// 간선 자체를 구현
+// 연결이 많은 경웅에 유리
+// (2번함수처럼 할 경우, 거의 모든 요소가 서로 연결되어 있으면 각 요소의 배열에 모든 요소값이 들어가야함)
+void CreateGraph_3()
 {
-public:
-    ArrayQueue()
-    {
-        //_container.resize(100);
-    }
+	struct Vertex
+	{
+		// int data;
+	};
 
-    void push(const T& value)
-    {
-        // 할당받은 메모리가 다 찾는지 체크
-        if (_size == _container.size())
-        {
-            // 메모리 추가
-            int newSize = max(1, _size * 2);
-            vector<T> newData;
-            newData.resize(newSize);
+	vector<Vertex> v;
+	v.resize(6);
 
-            // 데이터 복사
-            for (int i = 0; i < _size; i++)
-            {
-                int index = (_front + i) % _container.size();
-                newData[i] = _container[index];
-            }
+	// 읽는 방법 : adjacent[from][to]
+	// 행렬을 이용한 그래프 표현 (2차원 배열)
+	// 메모리 소모가 심하지만, 빠른 접근이 가능
+	vector<vector<bool>> adjacent(6, vector<bool>(6, false));
+	adjacent[0][1] = true;
+	adjacent[0][3] = true;
+	adjacent[1][0] = true;
+	adjacent[1][2] = true;
+	adjacent[1][3] = true;
+	adjacent[3][4] = true;
+	adjacent[5][4] = true;
 
-            _container.swap(newData);
-            _front = 0;
-            _back = _size;
-        }
+	// Q) 0번 -> 3번 연결?
+	bool connected = adjacent[0][3];
 
-        _container[_back] = value;
-        // 만약 back이 맨 마지막 메모리를 벗어나지 않도록 나머지 연산자를 활용해서 다시 앞쪽으로 순환하도록 구현
-        _back = (_back + 1) % _container.size();
-        _size++; // 데이터의 개수
-
-    }
-
-    void pop()
-    {
-        _front = (_front + 1) % _container.size();
-        _size--;
-    }
-
-    T& front()
-    {
-        return _container[_front];
-    }
-
-    bool empty() { return _size == 0; }
-    int size() { return _size; }
-
-private:
-    vector<T> _container;
-
-    int _front = 0;
-    int _back = 0;
-    int _size = 0;
-};
+	// 가중치 관련 벡터
+	vector<vector<int>> adjacent2 =
+	{
+		vector<int> { -1, 15, -1, 35, -1, -1 },
+		vector<int> { 15, -1, +5, 10, -1, -1 },
+		vector<int> { -1, -1, -1, -1, -1, -1 },
+		vector<int> { -1, -1, -1, -1, +5, -1 },
+		vector<int> { -1, -1, -1, -1, -1, -1 },
+		vector<int> { -1, -1, -1, -1, +5, -1 },
+	};
+}
 
 int main()
 {
-    Stack<int, list<int>> s;
-
-    // 삽입
-    s.push(1);
-    s.push(2);
-    s.push(3);
-
-    while (s.empty() == false)
-    {
-        // 최상위 데이터 출력
-        int data = s.top();
-
-        // 최상위 데이터 삭제
-        s.pop();
-
-        cout << data << endl;
-    }
-
-    // int size = s.size();
-
-    ArrayQueue<int> q;
-
-    for (int i = 0; i < 100; i++)
-        q.push(i);
-
-    while (q.empty() == false)
-    {
-        int value = q.front();
-        q.pop();
-        cout << value << endl;
-    }
-
-    int size = q.size();
-
+	CreateGraph_1();
+	CreateGraph_2();
+	CreateGraph_3();
 }
