@@ -130,6 +130,7 @@
     <ClCompile Include="Algorithm.cpp" />
     <ClCompile Include="Algorithm_Dijikstra.cpp" />
     <ClCompile Include="Algorithm_Graph.cpp" />
+    <ClCompile Include="Algorithm_PriorityQueue.cpp" />
     <ClCompile Include="Algorithm_Tree.cpp" />
     <ClCompile Include="Algorithm_VectorList.cpp" />
     <ClCompile Include="Algorithm_StackQueue.cpp" />
